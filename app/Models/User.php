@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Models;
+
 use App\Models\Post;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Conner\Likeable\Likeable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,7 +15,7 @@ use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, MediaAlly;
+    use HasApiTokens, HasFactory, Notifiable, MediaAlly ,  Likeable;
 
     /**
      * The attributes that are mass assignable.
@@ -46,11 +48,29 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    protected $postslikes; // Add this line
+
+    protected $concourslikes; // Add this line
     public function roles()
     {
         return $this
             ->belongsToMany(Role::class)
             ->withTimestamps();
+    }
+
+    public function isAdmin()
+    {
+        return $this->roles->contains('name', 'admin');
+    }
+
+    public function isCandidat()
+    {
+        return $this->roles->contains('name', 'candidat');
+    }
+
+    public function isUser()
+    {
+        return $this->roles->contains('name', 'user');
     }
 
     public function posts()
@@ -59,40 +79,40 @@ class User extends Authenticatable
     }
 
     public function concours()
-{
-    return $this->hasMany(Concour::class);
-}
-
-
-public function authorizeRoles($roles)
     {
-      if ($this->hasAnyRole($roles)) {
-        return true;
-      }
-      abort(401, 'This action is unauthorized.');
+        return $this->hasMany(Concour::class);
+    }
+
+
+    public function authorizeRoles($roles)
+    {
+        if ($this->hasAnyRole($roles)) {
+            return true;
+        }
+        abort(401, 'This action is unauthorized.');
     }
 
     public function hasAnyRole($roles)
     {
-      if (is_array($roles)) {
-        foreach ($roles as $role) {
-          if ($this->hasRole($role)) {
-            return true;
-          }
+        if (is_array($roles)) {
+            foreach ($roles as $role) {
+                if ($this->hasRole($role)) {
+                    return true;
+                }
+            }
+        } else {
+            if ($this->hasRole($roles)) {
+                return true;
+            }
         }
-      } else {
-        if ($this->hasRole($roles)) {
-          return true;
-        }
-      }
-      return false;
+        return false;
     }
 
     public function hasRole($role)
     {
-      if ($this->roles()->where('name', $role)->first()) {
-        return true;
-      }
-      return false;
+        if ($this->roles()->where('name', $role)->first()) {
+            return true;
+        }
+        return false;
     }
 }

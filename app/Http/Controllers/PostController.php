@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use App\Models\Post;
+use App\Models\Role;
+use App\Models\User;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -28,9 +29,10 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
-            'title' => 'required',
-            'content' => 'required',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -52,7 +54,14 @@ class PostController extends Controller
             }
         }
 
-        return redirect()->route('user.posts')->with('success', 'Post created successfully.');
+
+        $toastr = [
+            'type' => 'success',
+            'title' => 'Post créé',
+            'message' => 'Votre post a été créé avec succès'
+        ];
+
+        return redirect()->route('user.posts')->with(['toastr' => $toastr]);
     }
 
 
@@ -66,22 +75,43 @@ class PostController extends Controller
     // Edit method for displaying the edit post form
     public function edit(Post $post)
     {
-        return view('posts.edit', compact('post'));
+        return view('post.edit', compact('post'));
     }
 
     // Update method for updating a post in the database
     public function update(Request $request, Post $post)
     {
         $request->validate([
-            'title' => 'required',
-            'content' => 'required',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        $post = Post::find($post->id);
         $post->title = $request->title;
         $post->content = $request->content;
+        $post->user_id = auth()->user()->id;
         $post->save();
 
-        return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                // Store the image in local storage
+                $path = $image->store('posts', 'public');
+
+                $imageModel = new Image();
+                $imageModel->url = $path;
+                $imageModel->post_id = $post->id;
+                $imageModel->save();
+            }
+        }
+
+        $toastr = [
+            'type' => 'success',
+            'title' => 'Post modifié',
+            'message' => 'Votre post a été modifié avec succès'
+        ];
+
+        return redirect()->route('user.posts')->with(['toastr' => $toastr]);
     }
 
     // Destroy method for deleting a post
@@ -89,7 +119,13 @@ class PostController extends Controller
     {
         $post->delete();
 
-        return redirect()->route('user.posts')->with('success', 'Post deleted successfully.');
+        $toastr = [
+            'type' => 'success',
+            'title' => 'Post supprimé',
+            'message' => 'Votre post a été supprimé avec succès'
+        ];
+
+        return redirect()->route('user.posts')->with(['toastr' => $toastr]);
     }
 
 
@@ -98,17 +134,31 @@ class PostController extends Controller
     public function userPosts()
     {
         $user = User::find(Auth::user()->id);
+        $currentUser = User::find(Auth::user()->id);
         $posts = Post::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(5);
+
+        $likes = 0;
+        $postslikes = 0;
+        $concourslikes = 0;
 
         //add images to each post
         foreach ($posts as $post) {
             $images = Image::where('post_id', $post->id)->get();
             $post->images = $images;
+
+            $postslikes += $post->likes->count();
         }
 
-        return view('user.posts', compact('posts', 'user'));
+
+        foreach ($user->concours as $concour) {
+            $concourslikes += $concour->likes->count();
+        }
+
+        $likes = $postslikes + $concourslikes;
+
+        return view('user.posts', compact('posts', 'user', 'likes', 'currentUser'));
     }
     public function getUserPosts(Request $request)
     {
@@ -125,12 +175,23 @@ class PostController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
+        $likes = 0;
+        $postslikes = 0;
+        $concourslikes = 0;
+
         //add images to each post
         foreach ($posts as $post) {
             $images = Image::where('post_id', $post->id)->get();
             $post->images = $images;
+            $postslikes += $post->likes->count();
         }
 
-        return view('visituser.posts', compact('posts', 'user'));
+
+        foreach ($user->concours as $concour) {
+            $concourslikes += $concour->likes->count();
+        }
+
+        $likes = $postslikes + $concourslikes;
+        return view('visituser.posts', compact('posts', 'user', 'likes'));
     }
 }

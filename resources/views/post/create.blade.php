@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Create a Post') }}
+            {{ __('Créer un Poste') }}
         </h2>
     </x-slot>
 
@@ -11,21 +11,21 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
 
-                    <form class="relative"  action="{{ route('posts.store') }}" method="POST"  enctype="multipart/form-data">
+                    <form class="relative" action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
 
                         @csrf
 
 
                         <div
                             class="border border-whiterounded-lg shadow-sm overflow-hidden focus-within:border-bittersweet-500 focus-within:ring-1 focus-within:ring-bittersweet-500">
-                            <label for="title" class="sr-only">Title</label>
+                            <label for="title" class="sr-only">Titre</label>
                             <input type="text" name="title" id="title"
                                 class="bg-concgreen-600 block w-full border-0 pt-2.5 text-lg font-medium placeholder-white focus:ring-0"
-                                placeholder="Title">
+                                placeholder="Titre">
                             <label for="content" class="sr-only">Description</label>
                             <textarea rows="2" name="content" id="content"
                                 class="h-40 bg-concgreen-600 block w-full border-0 py-0 resize-none placeholder-white focus:ring-0 sm:text-sm"
-                                placeholder="Write content..."></textarea>
+                                placeholder="Rédiger un contenu..."></textarea>
 
 
                         </div>
@@ -44,10 +44,9 @@
                                                 d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
                                                 clip-rule="evenodd" />
                                         </svg>
-                                        <span class="text-sm text-white group-hover:text-gray-600 italic">Attach a
-                                            file</span>
-                                        <input  type="file" name="images[]" id="images" multiple
-                                            class="hidden" />
+                                        <span class="text-sm text-white group-hover:text-gray-600 italic">Attacher un
+                                            fichier</span>
+                                        <input type="file" name="images[]" id="images" multiple class="hidden" />
                                     </label>
                                 </button>
                             </div>
@@ -58,11 +57,42 @@
                             <div class="flex-shrink-0">
                                 <button type="submit"
                                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-bittersweet-400 hover:bg-bittersweet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bittersweet-500">
-                                    Create
+                                    Créer un poste
                                 </button>
                             </div>
                         </div>
+                        @if ($errors->any())
+                            <div class="rounded-md bg-red-50  p-4 opacity-80">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <!-- Heroicon name: solid/x-circle -->
+                                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">
+                                            Il y a eu {{ $errors->count() }} erreurs dans votre article
+                                        </h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <ul role="list" class="list-disc pl-5 space-y-1">
+
+
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                 </div>
+
                 </form>
 
             </div>

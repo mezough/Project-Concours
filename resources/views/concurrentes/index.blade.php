@@ -40,7 +40,7 @@
                                                             onchange="this.form.submit()">
                                                             <option
                                                                 value="all"{{ Request::input('tabs') == 'all' ? ' selected' : '' }}>
-                                                                All</option>
+                                                                Tous</option>
                                                             @foreach ($categories as $category)
                                                                 <option
                                                                     value="{{ $category->name }}"{{ Request::input('tabs') == $category->name ? ' selected' : '' }}>
@@ -59,7 +59,7 @@
                                                                     class="whitespace-nowrap   px-1 py-4 text-sm font-medium hover:border-gray-600 hover:text-gray-700
                                                                     @if (Request::input('tabs') == 'all' && Route::currentRouteName() === 'concurrentes.index') border-b-2 border-bittersweet-500  text-bittersweet-600 @endif
                                                                     ">
-                                                                    All
+                                                                    Tous
                                                                 </a>
 
                                                                 @foreach ($categories as $category)
@@ -154,7 +154,7 @@
                                                                         </li>
                                                                     @endforeach
                                                                 @else
-                                                                    <!-- This example requires Tailwind CSS v2.0+ -->
+
                                                                     <a type="button"
                                                                         class="
                                                                         col-span-12
@@ -169,12 +169,12 @@
                                                                         </svg>
                                                                         <span
                                                                             class="mt-2 block text-sm font-medium text-white">
-                                                                            No Users In This Category
+                                                                            Aucun utilisateur dans cette catégorie
                                                                         </span>
                                                                     </a>
                                                                 @endif
 
-                                                                <!-- More people... -->
+
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -182,7 +182,10 @@
                                             </div>
 
                                             <!-- Pagination links -->
-                                            {{ $concours->links() }}
+                                            <div class=" px-4 py-3  border-t border-gray-200 sm:px-6 mt-10">
+
+                                                {{ $concours->links('pagination::tailwind') }}
+                                            </div>
                                         </section>
                                     </div>
                                 </div>

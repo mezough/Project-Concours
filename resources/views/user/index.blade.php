@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12 grid gap-4 sm:grid-cols-12">
-        <div class="col-span-12 sm:col-span-4 ">
+        <div class="col-span-12 md:col-span-4 ">
             <div class="bg-concgreen-600 dark:bg-concgreen-600 overflow-hidden shadow-sm sm:rounded-lg">
                 <section aria-labelledby="profile-overview-title ">
                     <div class="overflow-hidden rounded-lg bg-concgreen-600 shadow">
@@ -21,12 +21,11 @@
                                         <div class="flex justify-center flex-shrink-0">
                                             <div class="relative w-40 overflow-hidden rounded-full lg:block">
                                                 @if (Auth::user()->avatar)
-                                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
-                                                    class="relative h-40 w-40 rounded-full" alt="" />
-
+                                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
+                                                        class="relative h-40 w-40 rounded-full" alt="" />
                                                 @else
                                                     <img class="relative h-40 w-40 rounded-full"
-                                                     src="{{ URL('image/profileplaceholder.jpg') }}" alt="1"
+                                                        src="{{ URL('image/profileplaceholder.jpg') }}" alt="1"
                                                         alt="" />
                                                 @endif
 
@@ -46,7 +45,7 @@
 
                                     <div class="flex justify-center py-5">
                                         <div class="flex-row justify-center items-center text-center ">
-                                            <p class="text-sm font-medium text-white">Welcome back,</p>
+                                            <p class="text-sm font-medium text-white">Bienvenue à nouveau,</p>
                                             <p class="text-xl font-bold text-white sm:text-2xl">{{ Auth::user()->name }}
                                             </p>
                                             <p class="text-sm font-medium text-white">{{ Auth::user()->email }}
@@ -56,7 +55,7 @@
 
                                 </div>
                                 <div class="mt-5 flex justify-center sm:mt-0">
-                                    <!-- This example requires Tailwind CSS v2.0+ -->
+
                                     <a href="#" class="flex-shrink-0 group block">
                                         <div class="flex items-center">
                                             <div>
@@ -70,8 +69,7 @@
                                             </div>
                                             <div class="ml-1">
                                                 <p class="text-3xl font-medium text-white group-hover:text-white">
-                                                    11K
-                                                </p>
+                                                    {{ $currentUser->likeCount }} </p>
 
                                             </div>
                                         </div>
@@ -121,7 +119,7 @@
 
             </div>
         </div>
-        <div class="col-span-12 sm:col-span-8">
+        <div class="col-span-12 md:col-span-8">
             <div class="bg-concgreen-600 dark:bg-concgreen-600 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-10">
                     @yield('content')

@@ -4,9 +4,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ConcourController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\LikeController;
 use App\Models\Category;
 use App\Models\Concour;
-use Illuminate\Foundation\Auth\User;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,15 +30,44 @@ use Illuminate\Support\Facades\Auth;
 
 
 
+Route::post('/contact', [MessageController::class, 'store'])->name('contact.store');
 
 /* landing */
 
 Route::get('/', function () {
-    $categories = Category::all();
+    $categories = Category::take(6)->get();
 
-    $users = User::orderBy('views', 'desc')->take(6)->get();
-    return view('landing', compact('categories', 'users'));
-});
+    $users = User::withCount(['posts', 'concours'])->get();
+
+    foreach ($users as $user) {
+        $user->postslikes =  $user->posts->sum(function ($post) {
+            return $post->likes->count();
+        });
+
+        $user->concourslikes =  $user->concours->sum(function ($concour) {
+            return $concour->likes->count();
+        });
+
+        $user->save();
+    }
+
+    // Order users by the sum of their posts and concours likes
+    $users = $users->sortByDesc(function ($user) {
+        return $user->postslikes + $user->concourslikes + $user->likes->count();
+    });
+
+    // Take the top 6 users
+    $topUsers = $users->take(6);
+
+
+
+    return view('landing', compact('categories', 'users', 'topUsers'));
+})->name('landing');
+
+Route::get('terms', function () {
+    return view('terms');
+})->name('terms');
+
 
 Route::get('/concours/filter', [ConcourController::class, 'filter'])->name('concours.filter');
 
@@ -45,7 +77,7 @@ Route::get('/concours', function () {
 
     $unfilteredcategories = Category::all();
 
-    $categories = Category::all();
+    $categories = Category::take(6)->get();
     // Get the authenticated user's ID
 
     if (Auth::check()) {
@@ -85,9 +117,18 @@ Route::middleware(['auth'])->group(function () {
 
     /* posts */
     Route::resource('posts', PostController::class);
+    Route::post('/like-post/{id}', [LikeController::class, 'likePost'])->name('like.post');
+    Route::post('/unlike-post/{id}', [LikeController::class, 'unlikePost'])->name('unlike.post');
+
+
+
 
     /* concour */
     Route::post('/concour', [ConcourController::class, 'submit'])->name('concour.submit');
+
+    Route::post('/like-concour/{id}', [LikeController::class, 'likeConcour'])->name('like.concour');
+    Route::post('/unlike-concour/{id}', [LikeController::class, 'unlikeConcour'])->name('unlike.concour');
+
 
 
     /* profiles */
@@ -97,14 +138,17 @@ Route::middleware(['auth'])->group(function () {
 
     /* user */
     Route::get('/user', function () {
+
+
+
         return redirect('/user/concours');
     });
 
     Route::get('/user/concours', [ConcourController::class, 'concours'])->name('user.concours');
     Route::get('/user/posts', [PostController::class, 'userPosts'])->name('user.posts');
     Route::post('/user/upload', [ProfileController::class, 'upload'])->name('user.upload');
-
-
+    Route::post('/like-user/{id}', [LikeController::class, 'likeUser'])->name('like.user');
+    Route::post('/unlike-user/{id}', [LikeController::class, 'unlikeUser'])->name('unlike.user');
 
 
     /* Visit User */
@@ -135,9 +179,15 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function () {
+
     Route::get('/', function () {
-        return view('dashboard');
+        return redirect('/dashboard/admin');
     })->name('dashboard');
+
+
+    Route::get('/admin', function () {
+        return redirect('/dashboard/admin/categories');
+    })->name('dashboard');;
     Route::get('/admin/categories', [AdminController::class, 'indexCategories'])->name('admin.categories.index');
     Route::get('/admin/categories/create', [AdminController::class,  'createCategory'])->name('admin.categories.create');
     Route::post('/admin/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
@@ -159,6 +209,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function (
     Route::get('/admin/inbox', [MessageController::class, 'index'])->name('admin.inbox.index');
     Route::get('/admin/inbox/{id}', [MessageController::class, 'show'])->name('admin.inbox.show');
     Route::delete('/admin/inbox/{id}', [MessageController::class, 'destroy'])->name('admin.inbox.destroy');
+    Route::get('/admin/makeadmin/{id}', [AdminController::class, 'makeAdmin'])->name('admin.makeadmin');
+    Route::get('/admin/unmakeadmin/{id}', [AdminController::class, 'unmakeAdmin'])->name('admin.unmakeadmin');
 });
 
 require __DIR__ . '/auth.php';

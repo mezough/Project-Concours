@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Concour;
+use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -18,10 +19,17 @@ class ConcourController extends Controller
     {
         // Process the data and submit it
 
+        $request->validate([
+            'category_id' => 'required|integer',
+            'profession' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust the mime types and max size as per your requirement
+        ]);
+
         $concour = new Concour();
         $concour->category_id = $request->input('category_id');
         $concour->profession = $request->input('profession');
         $concour->user_id = auth()->user()->id;
+
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -38,7 +46,16 @@ class ConcourController extends Controller
         $user->roles()->attach(Role::where('name', 'candidat')->first()->id);
 
         $user->save();
-        return redirect()->route('user.concours')->with('success', 'Concour created successfully.');
+
+
+
+        $toastr = [
+            'type' => 'success',
+            'title' => 'Concour créé',
+            'message' =>    'Votre concour a été créé avec succès'
+        ];
+
+        return redirect()->route('user.concours')->with(['toastr' => $toastr]);
     }
 
 
@@ -47,14 +64,24 @@ class ConcourController extends Controller
 
         $concour->delete();
 
-        return redirect()->route('user.concours')->with('success', 'Concour deleted successfully.');
+        $toastr = [
+            'type' => 'success',
+            'title' => 'Concour supprimé',
+            'message' =>    'Votre concour a été supprimé avec succès'
+        ];
+
+        return redirect()->route('user.concours')->with(['toastr' => $toastr]);
     }
 
 
     public function concours(Request $request)
     {
-        $currentUser = Auth::user();
+        //check params for concourId
 
+
+        $currentUser = User::find(Auth::user()->id);
+
+        $data = null;
         $category = $request->input('tabs') ?? 'all';
 
         $cat = Category::where('name', $category)->first() ?? null;
@@ -64,12 +91,41 @@ class ConcourController extends Controller
             : Concour::where('user_id', $currentUser->id)->paginate(10);
 
         $categories = Category::all();
+        $likes = 0;
+        $postslikes = 0;
+        $concourslikes = 0;
 
 
-        return view('user.concours', compact('concours', 'categories', 'currentUser'));
+        //add images to each post
+        foreach ($currentUser->posts as $post) {
+
+            $postslikes += $post->likes->count();
+        }
+
+        foreach ($currentUser->concours as $concour) {
+            $concourslikes += $concour->likes->count();
+        }
+
+        $likes = $postslikes + $concourslikes;
+        if ($request->has('concourId')) {
+
+
+            $concourId = $request->input('concourId');
+
+
+
+            $data = Concour::find($concourId);
+
+
+
+            return view('user.concours', compact('concours', 'categories', 'currentUser', 'data', 'likes'));
+        } else {
+            return view('user.concours', compact('concours', 'categories', 'currentUser', 'data', 'likes'));
+        }
     }
     public function getUserConcours(Request $request)
     {
+
 
         $authuser = Auth::user();
         if (
@@ -78,6 +134,7 @@ class ConcourController extends Controller
             return redirect('/user/concours');
         }
         $user = User::find($request->id);
+        $data = null;
 
         $category = $request->input('tabs') ?? 'all';
 
@@ -89,8 +146,43 @@ class ConcourController extends Controller
 
         $categories = Category::all();
 
+        $posts = Post::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
-        return view('visituser.concours', compact('concours', 'categories', 'user'));
+        $likes = 0;
+        $postslikes = 0;
+        $concourslikes = 0;
+
+
+
+        //add images to each post
+        foreach ($user->posts as $post) {
+
+            $postslikes += $post->likes->count();
+        }
+
+        foreach ($user->concours as $concour) {
+            $concourslikes += $concour->likes->count();
+        }
+
+        $likes = $postslikes + $concourslikes;
+
+
+        if ($request->has('concourId')) {
+
+
+            $concourId = $request->input('concourId');
+
+
+
+            $data = Concour::find($concourId);
+
+
+            return view('visituser.concours', compact('concours', 'categories', 'user', 'data', 'likes'));
+        } else {
+            return view('visituser.concours', compact('concours', 'categories', 'user', 'likes'));
+        }
     }
 
 

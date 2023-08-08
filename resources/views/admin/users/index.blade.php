@@ -42,7 +42,12 @@
                             @foreach ($users as $user)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
+
+                                        {{-- better add link to show profile --}}
+                                        {{-- user avatar --}}
+                                        
+                                        <a href="{{ route('visituser.concours', ['id' => $user->id]) }}"
+                                            class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10">
                                                 @if ($user->avatar)
                                                     <img src="{{ asset('storage/' . $user->avatar) }}"
@@ -61,10 +66,10 @@
                                                     {{ $user->email }}
                                                 </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-white">{{ $user->postslikes + $user->concourslikes }}</div>
+                                        <div class="text-sm text-white">{{ $user->likeCount }}</div>
                                     </td>
 
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-white">
@@ -72,7 +77,7 @@
                                             Admin,
                                         @endif
                                         @if ($user->isUser())
-                                            User,
+                                            Utilisateur,
                                         @endif
                                         @if ($user->isCandidat())
                                             Candidat
@@ -83,7 +88,6 @@
                                         class="px-6 py-6  whitespace-nowrap text-right text-sm font-medium flex justify-end items-center space-x-3">
                                         @if (!$user->isAdmin())
                                             <a class="text-cyan-600 hover:text-indigo-900">
-
                                                 <form action="{{ route('admin.makeadmin', $user->id) }}" method="GET">
                                                     @csrf
                                                     <button type="submit">Ajouter un admin</button>
@@ -100,7 +104,7 @@
                                                 </form>
                                             </a>
                                         @endif
-                                        @if (!$user->isAdmin() || $user->email !== 'master@concour.com')
+                                        @if ($user->email !== 'master@concour.com')
                                             <a class="text-red-600 hover:text-indigo-900">
 
                                                 <form action="{{ route('admin.users.delete', $user->id) }}" method="POST">
@@ -119,7 +123,6 @@
 
                                 {{ $users->links('pagination::tailwind') }}
                             </div>
-
 
                         </tbody>
                     </table>

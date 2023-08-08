@@ -17,12 +17,10 @@
             <div class="bg-concgreen-600 dark:bg-concgreen-600 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
-
                     <form class="relative" action="{{ route('admin.categories.store') }}" method="POST"
                         enctype="multipart/form-data">
 
                         @csrf
-
 
                         <div
                             class="border border-whiterounded-lg shadow-sm overflow-hidden focus-within:border-bittersweet-500 focus-within:ring-1 focus-within:ring-bittersweet-500">
